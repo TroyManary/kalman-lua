@@ -1,8 +1,16 @@
 kalman = require"kalman"
 local noise = 10
 local data = {}
+local result
+local testPass = true
 
-dataFile = io.open("accelData.txt", "r")
+file = arg[1] or "test\\accelData.txt"
+autoVerify = arg[2] or false
+
+dataFile = io.open(file, "r")
+if (autoVerify) then
+  resultFile = io.open("test\\resultFile.txt", "r")
+end
 
 repeat
   str = dataFile:read()
@@ -16,7 +24,20 @@ repeat
       kalFilter = kalman.new(noise, data[1])
 	  init=false
 	else
-	  print(kalFilter:update(data[1]))
+	  result = kalFilter:update(data[1])
+	  if (autoVerify) then
+	    resultStr = resultFile:read()
+	    if (math.abs(result-tonumber(resultStr))>0.00000001) then
+		  print("Test Failed: Result=", result," Expected:",resultStr)
+		  testPass = false
+		end
+	  else
+	    print(result)
+	  end
 	end
- end
+  end
 until not str
+if (autoVerify and testPass) then
+    print("Test Passed")
+end
+	
